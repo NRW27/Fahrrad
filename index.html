@@ -2,7 +2,9 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Fahrrad: Simulator und Bike-Check</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚲</text></svg>">
 <meta name="description" content="Interaktives 3D-Fahrrad zum Fahrradtraining: ein Simulator für Kinder und der Bike-Check für Eltern.">
@@ -14,7 +16,26 @@
   :root[data-theme="dark"] { --bg: #141b2b; --pan: #1c2436; --ink: #eef2ff; --soft: #a9b3c7; --line: #2c3650; --acc-bg: #3a2618; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; }
-  body { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+  body { overflow: hidden; touch-action: none; overscroll-behavior: none; }
+  #shell { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+  /* Hochformat am Handy, wenn sich das Querformat nicht sperren lässt: alles um 90° gedreht zeigen */
+  body.rot #shell { transform-origin: 0 0; transform: rotate(90deg) translateY(-100%); }
+  .fs { margin-left: auto; height: 40px; padding: 0 14px; border: 2px solid var(--line); border-radius: 12px; background: transparent; color: var(--ink); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  /* Breites Querformat (z. B. Handy quer): Tabs als Leiste an der linken Seite, das Werkzeug wird höher */
+  #shell.side { flex-direction: row; }
+  #shell.side nav { flex-direction: column; align-items: stretch; width: 92px; padding: 10px 8px; border-bottom: 0; border-right: 2px solid var(--line); }
+  #shell.side .brand, #shell.side .tab small, #shell.side .fs span { display: none; }
+  #shell.side .tabs { flex-direction: column; flex: none; }
+  #shell.side .tab { flex: none; flex-direction: column; justify-content: center; gap: 4px; height: auto; min-height: 72px; padding: 8px 4px; font-size: 13px; line-height: 1.2; white-space: normal; text-align: center; }
+  #shell.side .tab .ic { font-size: 24px; }
+  #shell.side .fs { margin: auto 0 0; padding: 0; font-size: 20px; }
+  #start { position: fixed; inset: 0; z-index: 5; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(20, 27, 43, .55); }
+  body.ask #start { display: flex; }
+  #start div { max-width: 420px; padding: 24px; border-radius: 18px; background: var(--pan); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+  #start h2 { margin: 0 0 8px; font-size: 22px; }
+  #start p { margin: 0 0 18px; color: var(--soft); font-size: 16px; line-height: 1.4; }
+  #start .go { width: 100%; height: 52px; border: 0; border-radius: 14px; background: var(--acc); color: #fff; font: inherit; font-size: 18px; font-weight: 800; cursor: pointer; }
+  #start .skip { margin-top: 12px; border: 0; background: none; color: var(--soft); font: inherit; font-size: 15px; text-decoration: underline; cursor: pointer; }
   nav { flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--pan); border-bottom: 2px solid var(--line); }
   .brand { font-weight: 800; font-size: 17px; margin-right: 10px; white-space: nowrap; }
   .tabs { display: flex; gap: 8px; min-width: 0; }
@@ -32,20 +53,32 @@
     .brand, .tab small { display: none; }
     .tabs { flex: 1; }
     .tab { flex: 1; justify-content: center; padding: 0 10px; font-size: 15px; }
+    .fs span { display: none; }
   }
 </style>
 </head>
 <body>
+<div id="shell">
 <nav>
   <span class="brand">🚲 Fahrradtraining</span>
   <div class="tabs" role="tablist" aria-label="Werkzeug wählen">
-    <a class="tab" role="tab" href="#kinder" data-tab="kinder" data-src="kinder.html" data-title="Wie funktioniert ein Fahrrad?">🧒 Für Kinder <small>Wie funktioniert ein Fahrrad?</small></a>
-    <a class="tab" role="tab" href="#eltern" data-tab="eltern" data-src="eltern.html" data-title="Bike-Check für Eltern">✅ Für Eltern <small>Bike-Check</small></a>
+    <a class="tab" role="tab" href="#kinder" data-tab="kinder" data-src="kinder.html" data-title="Wie funktioniert ein Fahrrad?"><span class="ic">🧒</span> <span>Für Kinder</span> <small>Wie funktioniert ein Fahrrad?</small></a>
+    <a class="tab" role="tab" href="#eltern" data-tab="eltern" data-src="eltern.html" data-title="Bike-Check für Eltern"><span class="ic">✅</span> <span>Für Eltern</span> <small>Bike-Check</small></a>
   </div>
+  <button class="fs" id="fs" hidden title="Vollbild">⛶ <span>Vollbild</span></button>
 </nav>
 <main>
   <iframe id="view" title="Fahrrad-Werkzeug" allow="autoplay; fullscreen"></iframe>
 </main>
+</div>
+<div id="start" role="dialog" aria-labelledby="startT">
+  <div>
+    <h2 id="startT">🚲 Am besten quer und im Vollbild</h2>
+    <p>Mit zwei Fingern können Sie hineinzoomen, mit einem Finger drehen Sie das Fahrrad.</p>
+    <button class="go" id="go">▶ Im Vollbild starten</button>
+    <button class="skip" id="skip">Ohne Vollbild weiter</button>
+  </div>
+</div>
 <script>
   // Ein Rahmen für beide Werkzeuge: der Tab wählt die Seite, die Adresse (#kinder / #eltern) merkt sich die Wahl.
   const tabs = [...document.querySelectorAll('.tab')];
@@ -59,6 +92,54 @@
   };
   addEventListener('hashchange', show);
   show();
+
+  // Handy und Tablet: Vollbild und Querformat. Android sperrt das Querformat im Vollbild; wo das nicht geht
+  // (iPhone), wird im Hochformat der ganze Inhalt um 90° gedreht.
+  const root = document.documentElement;
+  const touch = matchMedia('(pointer: coarse)').matches;
+  const canFs = !!(root.requestFullscreen || root.webkitRequestFullscreen);
+  const isFs = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const shell = document.getElementById('shell');
+  const fsBtn = document.getElementById('fs');
+  const goFull = async () => {
+    try {
+      if (root.requestFullscreen) await root.requestFullscreen({navigationUI: 'hide'});
+      else root.webkitRequestFullscreen();
+    } catch {}
+    try {
+      await screen.orientation.lock('landscape');
+    } catch {}
+    layout();
+  };
+  const leaveFull = () => (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+  const layout = () => {
+    const rot = touch && innerHeight > innerWidth;
+    document.body.classList.toggle('rot', rot);
+    shell.style.width = rot ? `${innerHeight}px` : '';
+    shell.style.height = rot ? `${innerWidth}px` : '';
+    const w = rot ? innerHeight : innerWidth;
+    const h = rot ? innerWidth : innerHeight;
+    shell.classList.toggle('side', w / h > 1.85);
+    fsBtn.querySelector('span').textContent = isFs() ? 'Vollbild aus' : 'Vollbild';
+  };
+  addEventListener('resize', layout);
+  addEventListener('orientationchange', () => setTimeout(layout, 300));
+  document.addEventListener('fullscreenchange', layout);
+  document.addEventListener('webkitfullscreenchange', layout);
+  if (canFs) {
+    fsBtn.hidden = false;
+    fsBtn.addEventListener('click', () => (isFs() ? leaveFull() : goFull()));
+  }
+  if (touch) {
+    document.body.classList.add('ask');
+    if (!canFs) document.getElementById('go').textContent = '▶ Starten';
+    const close = () => document.body.classList.remove('ask');
+    document.getElementById('go').addEventListener('click', () => (close(), canFs && goFull()));
+    document.getElementById('skip').addEventListener('click', close);
+    if (!canFs) document.getElementById('skip').hidden = true;
+  }
+  for (const ev of ['gesturestart', 'gesturechange']) document.addEventListener(ev, (e) => e.preventDefault());
+  layout();
 </script>
 </body>
 </html>
