@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fahrrad: Simulator und Bike-Check</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚲</text></svg>">
+<meta name="description" content="Interaktives 3D-Fahrrad zum Fahrradtraining: ein Simulator für Kinder und der Bike-Check für Eltern.">
+<style>
+  :root { --bg: #eef1ea; --pan: #ffffff; --ink: #1d2a22; --soft: #5d6b62; --line: #dfe4da; --acc: #ff6a1f; --acc-bg: #fff3ec; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #141b2b; --pan: #1c2436; --ink: #eef2ff; --soft: #a9b3c7; --line: #2c3650; --acc-bg: #3a2618; }
+  }
+  :root[data-theme="dark"] { --bg: #141b2b; --pan: #1c2436; --ink: #eef2ff; --soft: #a9b3c7; --line: #2c3650; --acc-bg: #3a2618; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; }
+  body { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+  nav { flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--pan); border-bottom: 2px solid var(--line); }
+  .brand { font-weight: 800; font-size: 17px; margin-right: 10px; white-space: nowrap; }
+  .tabs { display: flex; gap: 8px; min-width: 0; }
+  .tab {
+    display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 2px solid var(--line); border-radius: 12px;
+    background: transparent; color: var(--ink); font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer; white-space: nowrap; text-decoration: none;
+  }
+  .tab small { font-size: 13px; font-weight: 600; color: var(--soft); }
+  .tab[aria-selected="true"] { border-color: var(--acc); background: var(--acc-bg); }
+  .tab:focus-visible { outline: 3px solid var(--acc); outline-offset: 2px; }
+  main { flex: 1; min-height: 0; position: relative; }
+  iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+  @media (max-width: 760px), (max-height: 500px) {
+    nav { padding: 6px 16px; }
+    .brand, .tab small { display: none; }
+    .tabs { flex: 1; }
+    .tab { flex: 1; justify-content: center; padding: 0 10px; font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">🚲 Fahrradtraining</span>
+  <div class="tabs" role="tablist" aria-label="Werkzeug wählen">
+    <a class="tab" role="tab" href="#kinder" data-tab="kinder" data-src="kinder.html" data-title="Wie funktioniert ein Fahrrad?">🧒 Für Kinder <small>Wie funktioniert ein Fahrrad?</small></a>
+    <a class="tab" role="tab" href="#eltern" data-tab="eltern" data-src="eltern.html" data-title="Bike-Check für Eltern">✅ Für Eltern <small>Bike-Check</small></a>
+  </div>
+</nav>
+<main>
+  <iframe id="view" title="Fahrrad-Werkzeug" allow="autoplay; fullscreen"></iframe>
+</main>
+<script>
+  // Ein Rahmen für beide Werkzeuge: der Tab wählt die Seite, die Adresse (#kinder / #eltern) merkt sich die Wahl.
+  const tabs = [...document.querySelectorAll('.tab')];
+  const view = document.getElementById('view');
+  const show = () => {
+    const id = location.hash.slice(1);
+    const tab = tabs.find((t) => t.dataset.tab === id) || tabs[0];
+    for (const t of tabs) t.setAttribute('aria-selected', String(t === tab));
+    if (view.getAttribute('src') !== tab.dataset.src) view.setAttribute('src', tab.dataset.src);
+    document.title = `${tab.dataset.title} · Fahrradtraining`;
+  };
+  addEventListener('hashchange', show);
+  show();
+</script>
+</body>
+</html>
